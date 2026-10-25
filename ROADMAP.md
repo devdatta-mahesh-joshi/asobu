@@ -83,7 +83,7 @@ One small dungeon: about 8 rooms, a key and lock, one new item, one boss.
 |---|---|---|
 | Engine | **Godot Editor 4** (official Android app) | GDScript only, no C#. Use the Compatibility or Mobile renderer. Grant "All files access". Can't export finished builds, so use CI (below). |
 | Terminal / git | **Termux** from F-Droid or GitHub | The Play Store build is deprecated. `pkg install git openssh python`, `termux-setup-storage` |
-| Lesson 01 (JS) | Termux + Chrome | `python -m http.server` in the lesson folder, then open `localhost:8000`. Edit with Acode, or `micro`/`nvim` in Termux. |
+| Lesson 01 (JS) | Termux + Chrome | `python -m http.server` in the lesson folder, then open `localhost:8000`. Edit with vim in Termux. |
 | Pixel art | Resprite or Pixel Studio, Pixelorama (experimental Android build on itch.io) | A stylus helps a lot |
 | Audio | jsfxr, BeepBox | Both run in the browser |
 | Builds | GitHub Actions + headless Godot (e.g. `barichello/godot-ci`) | Exports web/desktop builds and can upload to itch.io with `butler` |
