@@ -1,0 +1,140 @@
+# Exports every Godot project in games/<name>/ to Web, Windows and Linux.
+#
+# - Every push: builds are attached to the workflow run as downloadable artifacts.
+# - main only, opt-in: web builds are published to GitHub Pages
+#   (set repo variable DEPLOY_PAGES=true and Settings > Pages > Source = GitHub Actions).
+# - main only, opt-in: builds are pushed to itch.io with butler
+#   (set secret BUTLER_API_KEY and repo variable ITCH_USER; the itch.io page must exist,
+#   named like the game folder).
+
+name: Export games
+
+on:
+  push:
+    paths:
+      - "games/**"
+      - ".github/godot/**"
+      - ".github/workflows/export-games.yml"
+  workflow_dispatch:
+
+env:
+  # Keep this in sync with the Godot version on your tablet.
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    outputs:
+      games: ${{ steps.list.outputs.games }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: list
+        run: |
+          games=$(find games -mindepth 2 -maxdepth 2 -name project.godot -printf '%h\n' 2>/dev/null \
+            | xargs -r -n1 basename | sort | jq -R . | jq -sc .)
+          echo "games=${games:-[]}" >> "$GITHUB_OUTPUT"
+          echo "Found: ${games:-none}"
+
+  export:
+    needs: find
+    if: needs.find.outputs.games != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJson(needs.find.outputs.games) }}
+    env:
+      GAME_DIR: games/${{ matrix.game }}
+      OUT: ${{ github.workspace }}/build/${{ matrix.game }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache export templates
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: godot-templates-${{ env.GODOT_VERSION }}
+
+      - name: Install Godot ${{ env.GODOT_VERSION }}
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSfLO "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q "Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          sudo mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" /usr/local/bin/godot
+          templates=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          if [ ! -d "$templates" ]; then
+            curl -sSfLO "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            unzip -q "Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+            mkdir -p "$(dirname "$templates")"
+            mv templates "$templates"
+          fi
+          godot --version
+
+      - name: Export
+        working-directory: ${{ env.GAME_DIR }}
+        run: |
+          [ -f export_presets.cfg ] || cp "$GITHUB_WORKSPACE/.github/godot/export_presets.cfg" .
+          mkdir -p "$OUT/web" "$OUT/windows" "$OUT/linux"
+          # Import assets first so the export sees everything.
+          godot --headless --import
+          godot --headless --export-release "Web" "$OUT/web/index.html"
+          godot --headless --export-release "Windows Desktop" "$OUT/windows/${{ matrix.game }}.exe"
+          godot --headless --export-release "Linux" "$OUT/linux/${{ matrix.game }}.x86_64"
+          ls -lR "$OUT"
+          test -f "$OUT/web/index.html"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.game }}-web
+          path: ${{ env.OUT }}/web
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.game }}-windows
+          path: ${{ env.OUT }}/windows
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.game }}-linux
+          path: ${{ env.OUT }}/linux
+
+      - name: Push to itch.io
+        if: github.ref == 'refs/heads/main' && vars.ITCH_USER != ''
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_USER: ${{ vars.ITCH_USER }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ]; then echo "BUTLER_API_KEY not set, skipping"; exit 0; fi
+          curl -sSfL -o butler.zip https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default
+          unzip -q butler.zip -d butler && chmod +x butler/butler
+          for channel in web windows linux; do
+            ./butler/butler push "$OUT/$channel" "$ITCH_USER/${{ matrix.game }}:$channel"
+          done
+
+  pages:
+    needs: export
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_PAGES == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: "*-web"
+          path: site
+      - name: Build index page
+        working-directory: site
+        run: |
+          for d in *-web; do mv "$d" "${d%-web}"; done
+          {
+            echo '<!doctype html><meta charset="utf-8"><title>asobu</title><h1>asobu games</h1><ul>'
+            for d in */; do echo "<li><a href=\"${d}\">${d%/}</a></li>"; done
+            echo '</ul>'
+          } > index.html
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v5
