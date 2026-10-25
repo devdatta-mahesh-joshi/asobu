@@ -74,7 +74,7 @@ One small dungeon: about 8 rooms, a key and lock, one new item, one boss.
 
 **Study list:**
 - *Game Programming Patterns* chapters: State, Game Loop, Update Method, Component, Observer, Event Queue
-- GDC talks: "Juice it or lose it", Maddy Thorson's "Celeste & Forgiveness" article, Team Cherry's Hollow Knight talks
+- Talks and articles: "Juice it or lose it" (GDC Europe 2012), Maddy Thorson's "Celeste & Forgiveness" article, Hollow Knight developer interviews and postmortems
 - Game Maker's Toolkit (Mark Brown) videos on level design and game feel
 
 ## Log
