@@ -29,31 +29,37 @@ gh auth setup-git                # lets git push using that login
 ## 4. Clone the repo into shared storage
 Shared storage is where both Acode and (later) Godot can see the files.
 ```sh
-mkdir -p ~/storage/shared/Documents
-cd ~/storage/shared/Documents
+mkdir -p ~/storage/shared/Git
+cd ~/storage/shared/Git
 git clone https://github.com/devdatta-mahesh-joshi/asobu.git
 cd asobu
 ```
 
 ## 5. Run Lesson 01
 ```sh
-cd ~/storage/shared/Documents/asobu/lessons/01-game-loop
+cd ~/storage/shared/Git/asobu/lessons/01-game-loop
 python -m http.server 8000
 ```
 Open Chrome and go to **http://localhost:8000**. Leave Termux running. To stop the server, press Ctrl+C.
 
-- **Edit:** in Acode, use *Open folder* → `Documents/asobu`. Put Acode and Chrome side by side in split-screen.
+- **Edit:** open the folder in Acode once (Acode remembers it):
+  1. Tap ☰ (top left) to open the sidebar, then tap **Open folder**.
+  2. Tap **Add a storage**. Android's folder picker opens.
+  3. Go to **Internal storage → Git** and tap **Use this folder**, then **Allow**. `~/storage/shared` in Termux is "Internal storage" (`/storage/emulated/0`) in other apps.
+  4. Back in Acode, pick the new storage and open `asobu`.
+
+  Choosing the whole `Git` folder means repos you clone there later show up in Acode without another permission prompt. Put Acode and Chrome side by side in split-screen.
 - **See changes:** save in Acode, then reload in Chrome.
 - **Debug:** open **http://localhost:8000/?debug** for an on-screen console (Chrome on Android has no DevTools). `console.log` output and errors show up there.
 
 ## 6. Save your work
 After each exercise (in Termux, Ctrl+C the server first, or open a new session by swiping from the left edge):
 ```sh
-cd ~/storage/shared/Documents/asobu
+cd ~/storage/shared/Git/asobu
 git add -A
 git commit -m "Lesson 01: exercise 1 (movement feel)"
 git push
 ```
 
 ## 7. Later, for Phase 1: Godot
-Install **Godot Editor 4** from the Play Store, matching `GODOT_VERSION` in `.github/workflows/export-games.yml`. Grant "All files access", then *Import* projects from `Documents/asobu/games/<name>/`. Use the **Compatibility** renderer for new projects.
+Install **Godot Editor 4** from the Play Store, matching `GODOT_VERSION` in `.github/workflows/export-games.yml`. Grant "All files access", then *Import* projects from `Git/asobu/games/<name>/`. Use the **Compatibility** renderer for new projects.
