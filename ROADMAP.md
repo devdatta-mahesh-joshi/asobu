@@ -89,7 +89,7 @@ One small dungeon: about 8 rooms, a key and lock, one new item, one boss.
 | Builds | GitHub Actions + headless Godot (e.g. `barichello/godot-ci`) | Exports web/desktop builds and can upload to itch.io with `butler` |
 | Hardware | Bluetooth keyboard + mouse | Close to essential for the Godot editor and keyboard-controlled games |
 
-Keep projects in shared storage (e.g. `Documents/asobu`) so both Godot and Termux can see them. In Termux that's `~/storage/shared/Documents/asobu`. Git may need `git config --global --add safe.directory '*'` and `core.fileMode false` there.
+Keep projects in shared storage (e.g. `Git/asobu`) so both Godot and Termux can see them. In Termux that's `~/storage/shared/Git/asobu`. Git may need `git config --global --add safe.directory '*'` and `core.fileMode false` there.
 
 ## Log
 
