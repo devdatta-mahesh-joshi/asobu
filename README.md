@@ -1,5 +1,5 @@
 # asobu
-My attempts at game development. See the [roadmap](ROADMAP.md).
+My attempts at game development. **Start here: [SETUP.md](SETUP.md)**, then the [roadmap](ROADMAP.md).
 
 ## Lessons
 
